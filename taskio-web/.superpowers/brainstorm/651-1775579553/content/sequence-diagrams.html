@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Taskio Sequence Diagrams</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', sans-serif; padding: 24px; }
+  h2 { color: #f0f6fc; font-size: 18px; margin-bottom: 4px; }
+  .subtitle { color: #8b949e; margin-bottom: 24px; font-size: 13px; }
+  .section { margin-bottom: 32px; }
+  .section h3 { color: #58a6ff; font-size: 14px; margin-bottom: 12px; padding: 6px 12px; background: #0d1f2e; border-left: 3px solid #1f6feb; border-radius: 0 4px 4px 0; }
+  .mermaid { background: #161b22; border-radius: 10px; padding: 20px; border: 1px solid #30363d; overflow-x: auto; }
+</style>
+</head>
+<body>
+<h2>Sequence Diagrams</h2>
+<p class="subtitle">Key interaction flows: Auth, Card CRUD, Real-time updates, File upload</p>
+
+<!-- 1. Login with Cognito -->
+<div class="section">
+<h3>1. User Authentication Flow (Cognito)</h3>
+<div class="mermaid">
+sequenceDiagram
+    actor User
+    participant FE as React Frontend (S3/CloudFront)
+    participant Cognito as Amazon Cognito
+    participant ALB as ALB + WAF
+    participant API as ECS Fargate (Node.js API)
+    participant Cache as ElastiCache (Redis)
+
+    User->>FE: Enter email + password
+    FE->>Cognito: InitiateAuth (USER_PASSWORD_AUTH)
+    Cognito-->>FE: AccessToken + IdToken + RefreshToken
+    Note over FE,Cognito: Tokens stored in httpOnly cookies
+
+    FE->>ALB: GET /v1/users/me (Cookie: AccessToken)
+    ALB->>ALB: Validate Cognito JWT (JWKS endpoint)
+    ALB->>API: Forward request + decoded claims
+    API->>Cache: Check user session cache
+    Cache-->>API: Cache miss
+    API->>API: Fetch user from DynamoDB
+    API-->>Cache: Cache user profile (TTL 5min)
+    API-->>ALB: 200 { user }
+    ALB-->>FE: 200 { user }
+    FE-->>User: Redirect to Dashboard
+</div>
+</div>
+
+<!-- 2. Create Card -->
+<div class="section">
+<h3>2. Create Card Flow (REST API)</h3>
+<div class="mermaid">
+sequenceDiagram
+    actor User
+    participant FE as React Frontend
+    participant ALB as ALB
+    participant API as ECS Fargate (API)
+    participant DB as DynamoDB
+    participant Cache as ElastiCache
+    participant Log as ActivityLog
+
+    User->>FE: Click "Add Card" on Column
+    FE->>ALB: POST /v1/cards { boardId, columnId, title }
+    ALB->>ALB: Validate Cognito JWT
+    ALB->>API: Forward + userContext
+
+    API->>API: Validate request (Joi schema)
+    API->>DB: Check board permission for user
+    DB-->>API: Permission OK
+
+    API->>DB: Insert Card document
+    DB-->>API: { _id, cardId, ... }
+
+    API->>DB: Push cardId to Column.cardOrderIds
+    DB-->>API: Column updated
+
+    API->>Log: Insert ActivityLog (created card)
+    API->>Cache: Invalidate board cache
+    Cache-->>API: OK
+
+    API-->>ALB: 201 { card }
+    ALB-->>FE: 201 { card }
+    FE-->>User: Card appears on board (optimistic UI)
+</div>
+</div>
+
+<!-- 3. Real-time Board Invitation -->
+<div class="section">
+<h3>3. Real-time Board Invitation (Socket.io)</h3>
+<div class="mermaid">
+sequenceDiagram
+    actor Inviter
+    actor Invitee
+    participant FE_A as Inviter Frontend
+    participant FE_B as Invitee Frontend
+    participant ALB as ALB (sticky session)
+    participant API as ECS Fargate (Socket.io)
+    participant DB as DynamoDB
+    participant Cache as ElastiCache (Redis Pub/Sub)
+
+    Note over FE_A,FE_B: Both clients connected via WebSocket to ALB (sticky session)
+
+    Inviter->>FE_A: Send board invitation
+    FE_A->>ALB: POST /v1/invitations { inviteeId, boardId }
+    ALB->>API: REST call
+    API->>DB: Create Invitation record
+    DB-->>API: Invitation created
+
+    API->>Cache: PUBLISH invite:userId event
+    Cache-->>API: Published to all Fargate instances
+
+    Note over API: Socket.io server on same Fargate instance as Invitee
+    API->>FE_B: socket.emit('inviteUserToBoard', payload)
+    FE_B-->>Invitee: 🔔 Notification popup appears
+
+    Invitee->>FE_B: Accept invitation
+    FE_B->>ALB: PUT /v1/invitations/:id { status: accepted }
+    ALB->>API: Update invitation
+    API->>DB: Update Invitation + Create BoardMember
+    DB-->>API: Done
+    API->>FE_B: socket.emit('boardInvitationAccepted')
+    API->>FE_A: socket.emit('boardInvitationAccepted')
+    FE_A-->>Inviter: Invitee joined board
+</div>
+</div>
+
+<!-- 4. File Upload -->
+<div class="section">
+<h3>4. File Upload Flow (S3 Presigned URL)</h3>
+<div class="mermaid">
+sequenceDiagram
+    actor User
+    participant FE as React Frontend
+    participant API as ECS Fargate (API)
+    participant S3P as S3Provider (AWS SDK)
+    participant S3 as Amazon S3
+    participant DB as DynamoDB
+
+    User->>FE: Attach file to Card
+    FE->>API: POST /v1/attachments { cardId, fileName, fileType }
+    API->>S3P: getSignedUrl(PutObject, key, expires=300s)
+    S3P-->>API: presignedUrl
+
+    API-->>FE: { presignedUrl, attachmentId }
+    FE->>S3: PUT presignedUrl (file bytes, direct upload)
+    S3-->>FE: 200 OK
+
+    FE->>API: PUT /v1/attachments/:id { status: uploaded }
+    API->>DB: Update Attachment { fileUrl, fileSize, status }
+    DB-->>API: OK
+    API-->>FE: 200 { attachment }
+    FE-->>User: Attachment visible on Card
+</div>
+</div>
+
+</body>
+</html>

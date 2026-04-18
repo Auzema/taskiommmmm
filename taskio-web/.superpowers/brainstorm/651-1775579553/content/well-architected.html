@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AWS Well-Architected Framework — Taskio</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', sans-serif; padding: 28px; font-size: 13px; }
+  h2 { color: #f0f6fc; font-size: 20px; margin-bottom: 4px; }
+  .subtitle { color: #8b949e; margin-bottom: 28px; font-size: 13px; }
+
+  .pillars { display: grid; grid-template-columns: repeat(auto-fill, minmax(480px, 1fr)); gap: 16px; }
+
+  .pillar { border-radius: 10px; overflow: hidden; border: 1px solid #30363d; }
+  .pillar-header { padding: 14px 18px; display: flex; align-items: center; gap: 12px; }
+  .pillar-icon { font-size: 26px; line-height: 1; }
+  .pillar-title { font-size: 15px; font-weight: 700; }
+  .pillar-tagline { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+
+  .pillar-body { background: #161b22; padding: 14px 18px; }
+
+  .evidence { display: flex; flex-direction: column; gap: 7px; }
+  .item { display: flex; gap: 10px; align-items: flex-start; }
+  .svc { background: #21262d; border-radius: 4px; padding: 2px 8px; font-size: 10px; font-weight: 700; white-space: nowrap; color: #e6edf3; border: 1px solid #30363d; min-width: 120px; text-align: center; flex-shrink: 0; }
+  .how { color: #c9d1d9; font-size: 12px; line-height: 1.5; }
+
+  /* pillar colors */
+  .p1 .pillar-header { background: #0d2818; border-bottom: 2px solid #3fb950; }
+  .p1 .pillar-title  { color: #3fb950; }
+  .p2 .pillar-header { background: #2d0d0d; border-bottom: 2px solid #f85149; }
+  .p2 .pillar-title  { color: #f85149; }
+  .p3 .pillar-header { background: #0d1f2e; border-bottom: 2px solid #58a6ff; }
+  .p3 .pillar-title  { color: #58a6ff; }
+  .p4 .pillar-header { background: #1a0f2e; border-bottom: 2px solid #d2a8ff; }
+  .p4 .pillar-title  { color: #d2a8ff; }
+  .p5 .pillar-header { background: #1a1a08; border-bottom: 2px solid #e3b341; }
+  .p5 .pillar-title  { color: #e3b341; }
+  .p6 .pillar-header { background: #0d1f1f; border-bottom: 2px solid #39d353; }
+  .p6 .pillar-title  { color: #39d353; }
+
+  .svc.green  { border-color: #238636; color: #3fb950; }
+  .svc.red    { border-color: #f85149; color: #f85149; }
+  .svc.blue   { border-color: #1f6feb; color: #58a6ff; }
+  .svc.purple { border-color: #8957e5; color: #d2a8ff; }
+  .svc.gold   { border-color: #e3b341; color: #e3b341; }
+  .svc.teal   { border-color: #39d353; color: #39d353; }
+
+  .score-bar { display: flex; gap: 10px; align-items: center; margin-top: 16px; padding: 10px 14px; background: #161b22; border-radius: 8px; border: 1px solid #30363d; }
+  .score-label { font-size: 11px; color: #8b949e; white-space: nowrap; }
+  .bar-wrap { flex: 1; background: #21262d; border-radius: 4px; height: 8px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; }
+  .score-val { font-size: 11px; font-weight: 700; min-width: 32px; text-align: right; }
+</style>
+</head>
+<body>
+
+<h2>☁️ AWS Well-Architected Framework — Taskio Compliance</h2>
+<p class="subtitle">How each design decision maps to the 6 pillars. Use this section in your presentation and defense.</p>
+
+<div class="pillars">
+
+  <!-- PILLAR 1: Operational Excellence -->
+  <div class="pillar p1">
+    <div class="pillar-header">
+      <div class="pillar-icon">⚙️</div>
+      <div>
+        <div class="pillar-title">1. Operational Excellence</div>
+        <div class="pillar-tagline">Run, monitor, and continuously improve operations</div>
+      </div>
+    </div>
+    <div class="pillar-body">
+      <div class="evidence">
+        <div class="item">
+          <div class="svc green">CodePipeline + CodeBuild</div>
+          <div class="how">Fully automated CI/CD — every <code>git push</code> triggers build, test, and ECS rolling deploy with zero manual steps and zero downtime.</div>
+        </div>
+        <div class="item">
+          <div class="svc green">CloudWatch Logs &amp; Alarms</div>
+          <div class="how">All ECS task stdout/stderr streamed to CloudWatch. Alarms on CPU &gt; 80%, ALB 5xx rate, DynamoDB throttling — ops team is alerted before users notice.</div>
+        </div>
+        <div class="item">
+          <div class="svc green">ECS Fargate</div>
+          <div class="how">No OS patching, no AMI management, no SSH sessions. AWS handles the runtime — our team focuses on application logic, not infrastructure maintenance.</div>
+        </div>
+        <div class="item">
+          <div class="svc green">Secrets Manager</div>
+          <div class="how">Centralized config management — no hardcoded env vars in code or Dockerfiles. Secrets rotate automatically without redeploying.</div>
+        </div>
+        <div class="item">
+          <div class="svc green">ECS Rolling Deploy</div>
+          <div class="how">Health-check gated rollout (min 50% healthy). Failed deploys auto-rollback before old tasks are terminated — safe by default.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PILLAR 2: Security -->
+  <div class="pillar p2">
+    <div class="pillar-header">
+      <div class="pillar-icon">🔐</div>
+      <div>
+        <div class="pillar-title">2. Security</div>
+        <div class="pillar-tagline">Protect data, systems, and assets at every layer</div>
+      </div>
+    </div>
+    <div class="pillar-body">
+      <div class="evidence">
+        <div class="item">
+          <div class="svc red">Amazon Cognito</div>
+          <div class="how">Managed auth — eliminates custom JWT signing, bcrypt misuse, and token rotation bugs from our codebase. SOC2/ISO-certified identity provider.</div>
+        </div>
+        <div class="item">
+          <div class="svc red">WAF on ALB</div>
+          <div class="how">OWASP Top 10 managed rule set blocks SQLi, XSS, and HTTP floods before requests reach ECS. IP-based rate limiting (1000 req/5min) prevents abuse.</div>
+        </div>
+        <div class="item">
+          <div class="svc red">VPC Private Subnets</div>
+          <div class="how">ECS tasks and ElastiCache are in private subnets — zero inbound internet access. ALB is the only public entry point to the application tier.</div>
+        </div>
+        <div class="item">
+          <div class="svc red">ACM + HTTPS</div>
+          <div class="how">TLS 1.2+ enforced on CloudFront and ALB. ACM auto-renews certificates — no manual cert management.</div>
+        </div>
+        <div class="item">
+          <div class="svc red">DynamoDB VPC Endpoint</div>
+          <div class="how">Database traffic never traverses the public internet. VPC Gateway Endpoint routes DynamoDB calls within AWS's private backbone network.</div>
+        </div>
+        <div class="item">
+          <div class="svc red">IAM Least Privilege</div>
+          <div class="how">ECS task execution role grants only: ECR pull, Secrets Manager read, CloudWatch write. No wildcard permissions.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PILLAR 3: Reliability -->
+  <div class="pillar p3">
+    <div class="pillar-header">
+      <div class="pillar-icon">🛡️</div>
+      <div>
+        <div class="pillar-title">3. Reliability</div>
+        <div class="pillar-tagline">Recover from failures and meet demand automatically</div>
+      </div>
+    </div>
+    <div class="pillar-body">
+      <div class="evidence">
+        <div class="item">
+          <div class="svc blue">Multi-AZ (AZ1 + AZ2)</div>
+          <div class="how">ECS tasks, ElastiCache, and ALB targets span 2 AZs. If an entire AZ goes down, ALB automatically routes all traffic to the healthy AZ within seconds — no manual intervention.</div>
+        </div>
+        <div class="item">
+          <div class="svc blue">ALB Health Checks</div>
+          <div class="how"><code>GET /v1/status</code> checked every 30s. Unhealthy ECS tasks are deregistered automatically — traffic never hits a broken instance.</div>
+        </div>
+        <div class="item">
+          <div class="svc blue">DynamoDB</div>
+          <div class="how">Built-in Multi-AZ replication with 99.999% availability SLA. On-demand capacity means no throttling during traffic spikes.</div>
+        </div>
+        <div class="item">
+          <div class="svc blue">ElastiCache Primary + Replica</div>
+          <div class="how">Primary in AZ1, replica in AZ2. Automatic failover in ~30s if primary fails — cache stays available during AZ failure.</div>
+        </div>
+        <div class="item">
+          <div class="svc blue">ECS Auto Scaling</div>
+          <div class="how">Target tracking on CPU utilization — new Fargate tasks spin up in ~60s when load increases. Min 2 tasks (one per AZ) ensures baseline HA at all times.</div>
+        </div>
+        <div class="item">
+          <div class="svc blue">NAT Gateway × 2</div>
+          <div class="how">One NAT Gateway per AZ. If AZ1 NAT fails, AZ2 Fargate tasks still have outbound internet access via AZ2 NAT — no single point of failure for egress.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PILLAR 4: Performance Efficiency -->
+  <div class="pillar p4">
+    <div class="pillar-header">
+      <div class="pillar-icon">⚡</div>
+      <div>
+        <div class="pillar-title">4. Performance Efficiency</div>
+        <div class="pillar-tagline">Use resources efficiently as demand changes</div>
+      </div>
+    </div>
+    <div class="pillar-body">
+      <div class="evidence">
+        <div class="item">
+          <div class="svc purple">CloudFront</div>
+          <div class="how">React bundle served from 400+ edge PoPs worldwide — users load the app from the nearest location, not your origin region. Sub-10ms asset delivery globally.</div>
+        </div>
+        <div class="item">
+          <div class="svc purple">ElastiCache (Redis)</div>
+          <div class="how">Sub-millisecond cache layer absorbs repetitive DynamoDB reads (user sessions, board permissions, workspace data). Cache hit = no DB round-trip.</div>
+        </div>
+        <div class="item">
+          <div class="svc purple">DynamoDB On-Demand</div>
+          <div class="how">No provisioned capacity limits — handles sudden traffic spikes (viral board shares, large team onboarding) without pre-warming or throttling.</div>
+        </div>
+        <div class="item">
+          <div class="svc purple">ECS Fargate Task Sizing</div>
+          <div class="how">Right-size per task (512 vCPU / 1GB RAM baseline), not per VM. Scale individual tasks without over-provisioning idle instance capacity.</div>
+        </div>
+        <div class="item">
+          <div class="svc purple">Socket.io Redis Adapter</div>
+          <div class="how">Real-time events broadcast via Redis pub/sub — O(1) delivery to any connected client regardless of which Fargate task they're on. No polling overhead.</div>
+        </div>
+        <div class="item">
+          <div class="svc purple">ALB Connection Reuse</div>
+          <div class="how">ALB maintains persistent connections to ECS targets, reducing TCP handshake overhead for high-frequency API calls from the React frontend.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PILLAR 5: Cost Optimization -->
+  <div class="pillar p5">
+    <div class="pillar-header">
+      <div class="pillar-icon">💰</div>
+      <div>
+        <div class="pillar-title">5. Cost Optimization</div>
+        <div class="pillar-tagline">Deliver value at the lowest price point</div>
+      </div>
+    </div>
+    <div class="pillar-body">
+      <div class="evidence">
+        <div class="item">
+          <div class="svc gold">ECS Fargate</div>
+          <div class="how">Pay per task-second — no idle EC2 costs. Scale to zero during off-hours if needed. No reserved instance commitments required to start.</div>
+        </div>
+        <div class="item">
+          <div class="svc gold">DynamoDB On-Demand</div>
+          <div class="how">Pay per read/write request — no minimum hourly charge. Ideal for variable traffic patterns. Switch to provisioned + auto-scaling at sustained high load for further savings.</div>
+        </div>
+        <div class="item">
+          <div class="svc gold">S3 + CloudFront (Frontend)</div>
+          <div class="how">Hosting a React SPA on S3+CloudFront costs cents per month. Eliminates any server cost for the presentation tier entirely.</div>
+        </div>
+        <div class="item">
+          <div class="svc gold">ElastiCache → DynamoDB reduction</div>
+          <div class="how">Each cache hit avoids a DynamoDB read. At 1M cached reads/day, savings are ~$0.13/day. At scale, the cache pays for itself by reducing DB read costs.</div>
+        </div>
+        <div class="item">
+          <div class="svc gold">DynamoDB VPC Endpoint</div>
+          <div class="how">Free to create. Eliminates NAT Gateway data processing fees for all DynamoDB traffic — potentially saving $0.045/GB on high-volume DB workloads.</div>
+        </div>
+        <div class="item">
+          <div class="svc gold">Single WAF on ALB</div>
+          <div class="how">WAF only on the API entry point (ALB) — not duplicated on CloudFront for static assets. Avoids redundant WAF cost (~$5/mo + per-request fee) on low-risk S3 traffic.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PILLAR 6: Sustainability -->
+  <div class="pillar p6">
+    <div class="pillar-header">
+      <div class="pillar-icon">🌱</div>
+      <div>
+        <div class="pillar-title">6. Sustainability</div>
+        <div class="pillar-tagline">Minimize environmental impact of cloud workloads</div>
+      </div>
+    </div>
+    <div class="pillar-body">
+      <div class="evidence">
+        <div class="item">
+          <div class="svc teal">ECS Fargate (Shared Fleet)</div>
+          <div class="how">AWS bins Fargate tasks onto shared, highly-utilized physical servers — far higher hardware utilization than a dedicated EC2 instance. Less energy per compute unit.</div>
+        </div>
+        <div class="item">
+          <div class="svc teal">Auto Scaling (No Idle Waste)</div>
+          <div class="how">Tasks scale to match demand. No over-provisioned servers running at 5% CPU at 3am. Only the compute actually needed is consuming energy.</div>
+        </div>
+        <div class="item">
+          <div class="svc teal">DynamoDB + ElastiCache (Managed)</div>
+          <div class="how">AWS manages the hardware fleet at massive scale — data center PUE and server utilization rates are far better than any self-hosted MongoDB/Redis cluster.</div>
+        </div>
+        <div class="item">
+          <div class="svc teal">CloudFront Edge Caching</div>
+          <div class="how">Cached responses at edge PoPs prevent repeat origin fetches — fewer compute cycles per user request. Each cache hit = zero server processing energy.</div>
+        </div>
+        <div class="item">
+          <div class="svc teal">S3 Static Hosting</div>
+          <div class="how">S3 stores objects across a shared, AWS-optimized storage fleet. No dedicated server running for your frontend — effectively zero marginal energy cost per request.</div>
+        </div>
+        <div class="item">
+          <div class="svc teal">AWS Region Selection</div>
+          <div class="how">Deploying in an AWS region powered by renewable energy (e.g., ap-southeast-1 has renewable commitments) further reduces the workload's carbon footprint.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Score summary -->
+<div style="margin-top: 28px; background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 18px 20px;">
+  <div style="font-size: 13px; font-weight: 700; color: #f0f6fc; margin-bottom: 14px;">Well-Architected Score Summary</div>
+  <div style="display: flex; flex-direction: column; gap: 9px;">
+    <div class="score-bar">
+      <div class="score-label" style="color:#3fb950;">Operational Excellence</div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:90%;background:#3fb950;"></div></div>
+      <div class="score-val" style="color:#3fb950;">9/10</div>
+      <div style="font-size:10px;color:#8b949e;min-width:220px;">CodePipeline CI/CD + CloudWatch + Fargate managed runtime</div>
+    </div>
+    <div class="score-bar">
+      <div class="score-label" style="color:#f85149;">Security</div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:95%;background:#f85149;"></div></div>
+      <div class="score-val" style="color:#f85149;">9.5/10</div>
+      <div style="font-size:10px;color:#8b949e;min-width:220px;">Cognito + WAF + VPC private subnets + IAM least privilege</div>
+    </div>
+    <div class="score-bar">
+      <div class="score-label" style="color:#58a6ff;">Reliability</div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:90%;background:#58a6ff;"></div></div>
+      <div class="score-val" style="color:#58a6ff;">9/10</div>
+      <div style="font-size:10px;color:#8b949e;min-width:220px;">Multi-AZ across all tiers + ALB health checks + DynamoDB 5-nines SLA</div>
+    </div>
+    <div class="score-bar">
+      <div class="score-label" style="color:#d2a8ff;">Performance Efficiency</div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:88%;background:#d2a8ff;"></div></div>
+      <div class="score-val" style="color:#d2a8ff;">8.5/10</div>
+      <div style="font-size:10px;color:#8b949e;min-width:220px;">CloudFront edge + ElastiCache + DynamoDB on-demand + Socket.io Redis adapter</div>
+    </div>
+    <div class="score-bar">
+      <div class="score-label" style="color:#e3b341;">Cost Optimization</div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:85%;background:#e3b341;"></div></div>
+      <div class="score-val" style="color:#e3b341;">8.5/10</div>
+      <div style="font-size:10px;color:#8b949e;min-width:220px;">Serverless compute + on-demand DB + VPC endpoint savings. NAT GW cost is known trade-off.</div>
+    </div>
+    <div class="score-bar">
+      <div class="score-label" style="color:#39d353;">Sustainability</div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:80%;background:#39d353;"></div></div>
+      <div class="score-val" style="color:#39d353;">8/10</div>
+      <div style="font-size:10px;color:#8b949e;min-width:220px;">Fargate shared fleet + auto-scaling + managed services. Improve with Graviton tasks.</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

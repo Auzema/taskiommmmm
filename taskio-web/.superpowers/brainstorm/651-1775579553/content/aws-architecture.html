@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Taskio AWS Architecture</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', sans-serif; padding: 24px; font-size: 13px; }
+  h2 { color: #f0f6fc; font-size: 18px; margin-bottom: 4px; }
+  .subtitle { color: #8b949e; margin-bottom: 20px; font-size: 13px; }
+
+  .diagram { display: flex; flex-direction: column; gap: 12px; }
+
+  /* Internet / User */
+  .internet { display: flex; justify-content: center; margin-bottom: 4px; }
+  .user-box { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 8px 20px; display: flex; align-items: center; gap: 8px; font-size: 12px; color: #8b949e; }
+
+  /* Arrow */
+  .arrow-down { display: flex; justify-content: center; align-items: center; color: #484f58; font-size: 18px; line-height: 1; height: 18px; }
+  .arrow-label { font-size: 10px; color: #6e7681; text-align: center; margin-top: -4px; margin-bottom: 4px; }
+
+  /* Tier labels */
+  .tier-wrap { position: relative; }
+  .tier-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6e7681; margin-bottom: 6px; }
+
+  /* Tier 1 - edge */
+  .tier1 { background: #0d1f0d; border: 1.5px solid #238636; border-radius: 10px; padding: 14px 16px; }
+  .tier1 .tier-label { color: #3fb950; }
+  .tier1-services { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
+
+  /* Tier 2 / VPC */
+  .vpc { background: #0d0d2b; border: 1.5px solid #58a6ff; border-radius: 10px; padding: 14px 16px; }
+  .vpc .tier-label { color: #58a6ff; }
+
+  .public-subnet-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; flex-wrap: wrap; }
+  .subnet-label { font-size: 10px; color: #6e7681; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+
+  .az-row { display: flex; gap: 10px; }
+  .az { background: #0d1b2e; border: 1px dashed #1f6feb; border-radius: 8px; padding: 10px; flex: 1; }
+  .az-title { font-size: 10px; color: #388bfd; font-weight: 600; margin-bottom: 8px; }
+  .private-app { background: #0f1f2e; border: 1px solid #1f6feb; border-radius: 6px; padding: 8px; margin-bottom: 8px; }
+  .private-db { background: #1a0f2e; border: 1px solid #8957e5; border-radius: 6px; padding: 8px; }
+
+  /* Tier 3 */
+  .tier3 { background: #1a0f2e; border: 1.5px solid #8957e5; border-radius: 10px; padding: 14px 16px; }
+  .tier3 .tier-label { color: #d2a8ff; }
+  .tier3-services { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  /* CI/CD */
+  .cicd { background: #1a1a0a; border: 1.5px solid #e3b341; border-radius: 10px; padding: 14px 16px; }
+  .cicd .tier-label { color: #e3b341; }
+  .cicd-services { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  /* Supporting */
+  .support { background: #161b22; border: 1.5px solid #30363d; border-radius: 10px; padding: 14px 16px; }
+  .support .tier-label { color: #8b949e; }
+  .support-services { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  /* Service box */
+  .svc { background: #21262d; border: 1px solid #30363d; border-radius: 6px; padding: 7px 10px; min-width: 90px; text-align: center; }
+  .svc .icon { font-size: 18px; display: block; margin-bottom: 3px; }
+  .svc .name { font-size: 11px; font-weight: 600; color: #e6edf3; display: block; }
+  .svc .desc { font-size: 10px; color: #8b949e; display: block; margin-top: 2px; }
+  .svc.green { border-color: #238636; }
+  .svc.blue { border-color: #1f6feb; }
+  .svc.purple { border-color: #8957e5; }
+  .svc.orange { border-color: #e3b341; }
+  .svc.red { border-color: #f85149; }
+  .svc.teal { border-color: #3fb950; }
+
+  /* Flow arrows between tiers */
+  .flow-row { display: flex; justify-content: center; align-items: center; gap: 16px; padding: 2px 0; }
+  .flow-arrow { color: #484f58; font-size: 14px; }
+  .flow-text { font-size: 10px; color: #6e7681; background: #161b22; padding: 2px 8px; border-radius: 4px; border: 1px solid #30363d; }
+
+  .new-badge { background: #0d4429; color: #3fb950; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; margin-left: 4px; vertical-align: middle; }
+  .replace-badge { background: #3d1f00; color: #e3b341; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; margin-left: 4px; vertical-align: middle; }
+
+  .legend { display: flex; gap: 16px; margin-top: 16px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #8b949e; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<h2>Taskio — AWS 3-Tier Architecture</h2>
+<p class="subtitle">Multi-AZ · ECS Fargate · Cognito · DynamoDB + ElastiCache · CodePipeline CI/CD</p>
+
+<div class="diagram">
+
+  <!-- Internet -->
+  <div class="internet">
+    <div class="user-box">🌐 &nbsp; Web Clients (Browser)</div>
+  </div>
+  <div class="arrow-down">↓</div>
+
+  <!-- Tier 1 -->
+  <div class="tier-wrap">
+    <div class="tier1">
+      <div class="tier-label">🟢 Tier 1 — Presentation &amp; Edge</div>
+      <div class="tier1-services">
+        <div class="svc green">
+          <span class="icon">🔵</span>
+          <span class="name">Route 53</span>
+          <span class="desc">DNS routing</span>
+        </div>
+        <div class="svc green">
+          <span class="icon">⚡</span>
+          <span class="name">CloudFront</span>
+          <span class="desc">CDN + HTTPS</span>
+        </div>
+        <div class="svc red">
+          <span class="icon">🛡️</span>
+          <span class="name">WAF</span>
+          <span class="desc">DDoS / rate limit<span class="new-badge">NEW</span></span>
+        </div>
+        <div class="svc green">
+          <span class="icon">🪣</span>
+          <span class="name">S3</span>
+          <span class="desc">Static assets</span>
+        </div>
+        <div class="svc orange">
+          <span class="icon">👤</span>
+          <span class="name">Cognito</span>
+          <span class="desc">User Pools<span class="new-badge">NEW</span></span>
+        </div>
+        <div class="svc green">
+          <span class="icon">🔒</span>
+          <span class="name">ACM</span>
+          <span class="desc">SSL/TLS certs</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-row">
+    <div class="flow-arrow">↓</div>
+    <div class="flow-text">HTTPS / JWT (Cognito token)</div>
+    <div class="flow-arrow">↓</div>
+  </div>
+
+  <!-- VPC / Tier 2 -->
+  <div class="tier-wrap">
+    <div class="vpc">
+      <div class="tier-label">🔵 Tier 2 — Application Layer (VPC)</div>
+
+      <!-- Public subnet: ALB + NAT -->
+      <div class="subnet-label">Public Subnets</div>
+      <div class="public-subnet-row">
+        <div class="svc blue">
+          <span class="icon">⚖️</span>
+          <span class="name">ALB</span>
+          <span class="desc">Load Balancer<br/>+ WAF + Cognito Auth</span>
+        </div>
+        <div style="color:#484f58;font-size:18px;">→</div>
+        <div class="svc blue">
+          <span class="icon">🌐</span>
+          <span class="name">NAT Gateway</span>
+          <span class="desc">Outbound traffic<br/>(x2 for HA)</span>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:center;color:#484f58;font-size:14px;margin:4px 0;">↓ routes to private subnets ↓</div>
+
+      <!-- AZ row -->
+      <div class="az-row">
+        <div class="az">
+          <div class="az-title">⬡ Availability Zone 1</div>
+          <div class="private-app">
+            <div class="subnet-label" style="color:#388bfd;">Private App Subnet</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+              <div class="svc blue" style="min-width:70px;">
+                <span class="icon">📦</span>
+                <span class="name">ECS</span>
+                <span class="desc">Fargate tasks<br/>Node.js API</span>
+              </div>
+            </div>
+          </div>
+          <div class="private-db">
+            <div class="subnet-label" style="color:#8957e5;">Private DB Subnet</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+              <div class="svc purple" style="min-width:70px;">
+                <span class="icon">🗄️</span>
+                <span class="name">DynamoDB</span>
+                <span class="desc">VPC Endpoint<span class="replace-badge">↔ Mongo</span></span>
+              </div>
+              <div class="svc purple" style="min-width:70px;">
+                <span class="icon">⚡</span>
+                <span class="name">ElastiCache</span>
+                <span class="desc">Redis primary<span class="replace-badge">↔ Redis</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="az">
+          <div class="az-title">⬡ Availability Zone 2</div>
+          <div class="private-app">
+            <div class="subnet-label" style="color:#388bfd;">Private App Subnet</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+              <div class="svc blue" style="min-width:70px;">
+                <span class="icon">📦</span>
+                <span class="name">ECS</span>
+                <span class="desc">Fargate tasks<br/>Node.js API</span>
+              </div>
+            </div>
+          </div>
+          <div class="private-db">
+            <div class="subnet-label" style="color:#8957e5;">Private DB Subnet</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+              <div class="svc purple" style="min-width:70px;">
+                <span class="icon">🗄️</span>
+                <span class="name">DynamoDB</span>
+                <span class="desc">VPC Endpoint<span class="replace-badge">↔ Mongo</span></span>
+              </div>
+              <div class="svc purple" style="min-width:70px;">
+                <span class="icon">⚡</span>
+                <span class="name">ElastiCache</span>
+                <span class="desc">Redis replica<span class="replace-badge">↔ Redis</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CI/CD -->
+  <div class="tier-wrap">
+    <div class="cicd">
+      <div class="tier-label">🟡 CI/CD Pipeline</div>
+      <div class="cicd-services">
+        <div class="svc orange">
+          <span class="icon">🐙</span>
+          <span class="name">GitHub</span>
+          <span class="desc">Source repo</span>
+        </div>
+        <div style="color:#484f58;align-self:center;">→</div>
+        <div class="svc orange">
+          <span class="icon">🔨</span>
+          <span class="name">CodeBuild</span>
+          <span class="desc">Build Docker image</span>
+        </div>
+        <div style="color:#484f58;align-self:center;">→</div>
+        <div class="svc orange">
+          <span class="icon">📦</span>
+          <span class="name">ECR</span>
+          <span class="desc">Container registry</span>
+        </div>
+        <div style="color:#484f58;align-self:center;">→</div>
+        <div class="svc orange">
+          <span class="icon">🚀</span>
+          <span class="name">CodePipeline</span>
+          <span class="desc">Deploy to ECS</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supporting Services -->
+  <div class="tier-wrap">
+    <div class="support">
+      <div class="tier-label">⚙️ Supporting Services</div>
+      <div class="support-services">
+        <div class="svc">
+          <span class="icon">👁️</span>
+          <span class="name">CloudWatch</span>
+          <span class="desc">Logs + metrics + alarms</span>
+        </div>
+        <div class="svc">
+          <span class="icon">🔑</span>
+          <span class="name">Secrets Manager</span>
+          <span class="desc">Env vars / API keys</span>
+        </div>
+        <div class="svc">
+          <span class="icon">🪪</span>
+          <span class="name">IAM</span>
+          <span class="desc">Roles &amp; policies</span>
+        </div>
+        <div class="svc">
+          <span class="icon">🪣</span>
+          <span class="name">S3</span>
+          <span class="desc">File uploads<br/>(existing)</span>
+        </div>
+        <div class="svc">
+          <span class="icon">☁️</span>
+          <span class="name">Cloudinary</span>
+          <span class="desc">Media CDN<br/>(existing)</span>
+        </div>
+        <div class="svc">
+          <span class="icon">📧</span>
+          <span class="name">SES</span>
+          <span class="desc">Email via Cognito<span class="new-badge">NEW</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#238636;"></div> Tier 1 — Edge</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#1f6feb;"></div> Tier 2 — App (VPC)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#8957e5;"></div> Tier 3 — Data</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e3b341;"></div> CI/CD</div>
+  <div class="legend-item" style="margin-left:12px;"><span style="background:#0d4429;color:#3fb950;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;">NEW</span> New service added</div>
+  <div class="legend-item"><span style="background:#3d1f00;color:#e3b341;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;">↔</span> Replaces existing</div>
+</div>
+
+</body>
+</html>

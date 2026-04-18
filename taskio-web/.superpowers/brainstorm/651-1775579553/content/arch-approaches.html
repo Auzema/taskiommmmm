@@ -1,0 +1,70 @@
+<h2>3 Architecture Approaches for Tier 2 Entry Point</h2>
+<p class="subtitle">Tier 1 (S3 + CloudFront + Route 53) and Tier 3 (DynamoDB + ElastiCache) are fixed. The difference is how traffic reaches ECS Fargate.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>ALB-Direct + WAF <span style="font-size:0.75em;color:#4caf50;font-weight:600;">RECOMMENDED</span></h3>
+      <p style="color:#aaa;font-size:0.85em;">Route 53 → CloudFront (frontend) / ALB (API) → ECS Fargate → DynamoDB + ElastiCache</p>
+      <p>WAF attached to CloudFront and ALB. Cognito Authorizer on ALB listener rules. Clean and proven pattern for containerized apps.</p>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Native WebSocket support via ALB + sticky sessions</li>
+          <li>WAF at edge (CloudFront) + at ALB for defense-in-depth</li>
+          <li>Lower latency — one fewer hop vs API Gateway</li>
+          <li>Cognito JWT validation built into ALB listener rules</li>
+          <li>Lower cost than API Gateway at scale</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>No built-in request/response transformation</li>
+          <li>API throttling requires custom logic or WAF rate rules</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>API Gateway + ALB (Full Reference Arch)</h3>
+      <p style="color:#aaa;font-size:0.85em;">Route 53 → CloudFront / API Gateway → ALB → ECS Fargate → DynamoDB + ElastiCache</p>
+      <p>Matches the reference diagram exactly. API Gateway provides throttling, caching, and Cognito Authorizer. ALB routes to Fargate tasks.</p>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Native Cognito Authorizer at API Gateway level</li>
+          <li>Built-in request throttling and usage plans</li>
+          <li>API response caching</li>
+          <li>Looks great on architecture diagrams</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>WebSockets need separate API Gateway WebSocket API (more complex)</li>
+          <li>Higher cost per request at scale</li>
+          <li>Two hops before reaching Fargate (latency)</li>
+          <li>HTTP API GW → ALB → Fargate is more complex to configure</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>CloudFront as Unified Proxy</h3>
+      <p style="color:#aaa;font-size:0.85em;">Route 53 → CloudFront (frontend + API proxy) → ALB → ECS Fargate → DynamoDB + ElastiCache</p>
+      <p>Single CloudFront distribution handles both static assets (S3 origin) and API calls (ALB origin). Path-based routing: /v1/* → ALB, /* → S3.</p>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Single domain for frontend + API (no CORS issues)</li>
+          <li>Edge caching for API responses where applicable</li>
+          <li>Simplified DNS setup</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>WebSocket connections over CloudFront require careful configuration</li>
+          <li>CloudFront timeouts can disrupt long-lived connections</li>
+          <li>More complex CloudFront behavior rules</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</div>

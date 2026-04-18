@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Architecture Defense Prep</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', sans-serif; padding: 24px; font-size: 13px; }
+  h2 { color: #f0f6fc; font-size: 20px; margin-bottom: 4px; }
+  .subtitle { color: #8b949e; margin-bottom: 24px; font-size: 13px; }
+
+  .toc { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+  .toc a { color: #58a6ff; font-size: 11px; background: #0d1f2e; border: 1px solid #1f6feb; border-radius: 4px; padding: 3px 10px; text-decoration: none; }
+  .toc a:hover { background: #1f6feb22; }
+
+  .section { margin-bottom: 28px; }
+  .section-title { font-size: 15px; font-weight: 700; color: #f0f6fc; padding: 8px 14px; border-radius: 6px 6px 0 0; display: flex; align-items: center; gap: 8px; }
+  .section-title.blue { background: #0d1f2e; border-left: 4px solid #58a6ff; }
+  .section-title.green { background: #0d2818; border-left: 4px solid #3fb950; }
+  .section-title.orange { background: #1f1a08; border-left: 4px solid #e3b341; }
+  .section-title.purple { background: #1a0f2e; border-left: 4px solid #d2a8ff; }
+  .section-title.red { background: #2d0d0d; border-left: 4px solid #f85149; }
+
+  .cards { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px 16px; }
+  .card.caveat { border-left: 3px solid #f85149; }
+  .card.win { border-left: 3px solid #3fb950; }
+
+  .q { font-weight: 700; color: #e6edf3; margin-bottom: 6px; font-size: 13px; }
+  .q::before { content: "Q: "; color: #8b949e; }
+  .a { color: #c9d1d9; line-height: 1.6; margin-bottom: 8px; }
+  .a::before { content: "A: "; color: #58a6ff; font-weight: 700; }
+  .caveat-label { font-size: 10px; font-weight: 700; color: #f85149; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .caveat-text { color: #c9d1d9; line-height: 1.6; font-size: 12px; }
+  .defend-label { font-size: 10px; font-weight: 700; color: #3fb950; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; margin-top: 8px; }
+
+  .component-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin-top: 10px; }
+  .comp { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 12px 14px; }
+  .comp-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .comp-icon { font-size: 20px; }
+  .comp-name { font-weight: 700; font-size: 13px; color: #e6edf3; }
+  .comp-tier { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 1px 6px; border-radius: 3px; }
+  .t1 { background: #0d2818; color: #3fb950; }
+  .t2 { background: #0d1f2e; color: #58a6ff; }
+  .t3 { background: #1a0f2e; color: #d2a8ff; }
+  .tci { background: #1f1a08; color: #e3b341; }
+  .tsp { background: #21262d; color: #8b949e; }
+  .comp-role { color: #8b949e; font-size: 12px; margin-bottom: 6px; }
+  .comp-how { color: #c9d1d9; font-size: 12px; line-height: 1.5; }
+  .comp-link { font-size: 11px; color: #8b949e; margin-top: 6px; font-style: italic; }
+
+  .flow-chain { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; padding: 12px 14px; background: #161b22; border-radius: 8px; border: 1px solid #30363d; }
+  .flow-step { background: #21262d; border: 1px solid #30363d; border-radius: 4px; padding: 4px 10px; font-size: 12px; color: #e6edf3; }
+  .flow-arrow { color: #484f58; font-size: 16px; }
+
+  .tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 3px; margin-right: 4px; }
+  .tag.new { background: #0d4429; color: #3fb950; }
+  .tag.replace { background: #3d1f00; color: #e3b341; }
+  .tag.kept { background: #161b22; color: #8b949e; border: 1px solid #30363d; }
+</style>
+</head>
+<body>
+
+<h2>🛡️ Architecture Defense Preparation</h2>
+<p class="subtitle">Taskio on AWS — Defense Q&amp;A, Component Guide, Caveats &amp; Justifications</p>
+
+<div class="toc">
+  <a href="#components">Component Guide</a>
+  <a href="#bigpicture">Big Picture Flow</a>
+  <a href="#tier1">Tier 1 Defense</a>
+  <a href="#tier2">Tier 2 Defense</a>
+  <a href="#tier3">Tier 3 Defense</a>
+  <a href="#cicd">CI/CD Defense</a>
+  <a href="#caveats">Known Caveats</a>
+</div>
+
+<!-- COMPONENT GUIDE -->
+<div class="section" id="components">
+  <div class="section-title blue">📦 What Each Component Does &amp; How They Work Together</div>
+  <div class="component-grid">
+
+    <div class="comp">
+      <div class="comp-header"><span class="comp-icon">🔵</span><span class="comp-name">Route 53</span><span class="comp-tier t1">Tier 1</span></div>
+      <div class="comp-role">DNS + health-based routing</div>
+      <div class="comp-how">Resolves <code>taskio.com</code> → CloudFront (frontend) and <code>api.taskio.com</code> → ALB. Performs health checks; if ALB goes unhealthy, Route 53 stops routing traffic to it.</div>
+    </div>
+
+    <div class="comp">
+      <div class="comp-header"><span class="comp-icon">⚡</span><span class="comp-name">CloudFront</span><span class="comp-tier t1">Tier 1</span></div>
+      <div class="comp-role">Global CDN for the React app</div>
+      <div class="comp-how">Caches the S3 static build at 400+ edge nodes worldwide. Users load JS/CSS from the nearest PoP, not your S3 region. Also terminates HTTPS (ACM cert). WAF is attached here as the first security gate.</div>
+    </div>
+
+    <div class="comp">
+      <div class="comp-header"><span class="comp-icon">🛡️</span><span class="comp-name">WAF</span><span class="comp-tier t1">Tier 1</span><span class="tag new">NEW</span></div>
+      <div class="comp-role">Web Application Firewall</div>
+      <div class="comp-how">Attached to both CloudFront and ALB (defense-in-depth). Blocks OWASP Top 10 (SQLi, XSS), rate-limits by IP (e.g., 1000 req/5min), and can geo-block. CloudFront WAF stops attacks at edge before they hit your VPC.</div>
+    </div>
+
+    <div class="comp">
+      <div class="comp-header"><span class="comp-icon">🪣</span><span class="comp-name">S3 (Frontend)</span><span class="comp-tier t1">Tier 1</span><span class="tag kept">KEPT</span></div>
+      <div class="comp-role">Static asset hosting</div>
+      <div class="comp-how">Stores the <code>vite build</code> output. Bucket is private — only accessible via CloudFront OAC (Origin Access Control). <code>npm run build</code> → upload to S3 → CloudFront invalidation.</div>
+    </div>
+
+    <div class="comp">
+      <div class="comp-header"><span class="comp-icon">👤</span><span class="comp-name">Amazon Cognito</span><span class="comp-tier t1">Tier 1</span><span class="tag new">NEW</span></div>
+      <div class="comp-role">Managed user auth (replaces custom JWT)</div>
+      <div class="comp-how">Handles registration, email verification, password reset, and token issuance. Issues JWTs (AccessToken, IdToken, RefreshToken). Frontend calls Cognito SDK directly — no auth traffic hits your backend. ALB verifies the JWT signature using Cognito's JWKS endpoint automatically.</div>
+      <div class="comp-link">Replaces: bcryptjs, JwtProvider, verifyToken flow, Brevo email for auth</div>
+    </div>
+
+    <div class="comp">
+      <div class="comp-header"><span class="comp-icon">⚖️</span><span class="comp-name">ALB</span><span class="comp-tier t2">Tier 2</span></div>
+      <div class="comp-role">L7 load balancer + Cognito enforcer</div>
+      <div class="comp-how">Sits in public subnets, receives HTTPS from Route 53. Listener rules validate Cognito JWT before forwarding to Fargate — unauthenticated requests are rejected at the ALB, never reaching your app. Sticky sessions (duration-based) ensure WebSocket clients reconnect to the same Fargate task.</div>
+    </div>
+
+    <div class="comp">
+      <div class="comp-header"><span class="comp-icon">📦</span><span class="comp-name">ECS Fargate</span><span class="comp-tier t2">Tier 2</span></div>
+      <div class="comp-role">Serverless containers running Node.js API</div>
+      <div class="comp-how">Runs your Express + Socket.io app in Docker containers. AWS manages the underlying EC2 — you only define CPU/memory per task. Auto Scaling adds tasks when CPU &gt; 70%. In AZ1 and AZ2 for HA. Tasks pull env vars from Secrets Manager at startup.</div>
+    </div>
+
+    <div class="comp">
+      <div class="comp-header"><span class="comp-icon">🌐</span><span class="comp-name">NAT Gateway</span><span class="comp-tier t2">Tier 2</span></div>
+      <div class="comp-role">Outbound internet for private subnets</div>
+      <div class="comp-how">Fargate tasks in private subnets need outbound internet (Cloudinary, S3 public API, SES). NAT Gateway (one per AZ) provides this without exposing tasks to inbound internet traffic. Each costs ~$32/mo + data transfer.</div>
+    </div>
+
+    <div class="comp">
+      <div class="comp-header"><span class="comp-icon">🗄️</span><span class="comp-name">DynamoDB</span><span class="comp-tier t3">Tier 3</span><span class="tag replace">↔ MongoDB</span></div>
+      <div class="comp-role">Primary NoSQL database</div>
+      <div class="comp-how">Multi-table design: one DynamoDB table per collection (22 tables). Each entity uses its MongoDB <code>_id</code> equivalent as partition key. GSIs (Global Secondary Indexes) replace MongoDB's <code>$lookup</code> queries. On-demand capacity — scales automatically, pay per request. Accessed via VPC Endpoint (no internet hop).</div>
+    </div>
+
+    <div class="comp">
+      <div class="comp-header"><span class="comp-icon">⚡</span><span class="comp-name">ElastiCache Redis</span><span class="comp-tier t3">Tier 3</span><span class="tag replace">↔ Redis</span></div>
+      <div class="comp-role">Cache + Socket.io pub/sub broker</div>
+      <div class="comp-how">Two roles: (1) API response caching — user sessions, board data, permissions cached with TTL to reduce DynamoDB reads. (2) Socket.io Redis Adapter — when multiple Fargate tasks run, Socket.io events are broadcast across all instances via Redis pub/sub. Primary in AZ1, replica in AZ2 for HA failover.</div>
+    </div>
+
+    <div class="comp">
+      <div class="comp-header"><span class="comp-icon">📦</span><span class="comp-name">ECR</span><span class="comp-tier tci">CI/CD</span></div>
+      <div class="comp-role">Docker container registry</div>
+      <div class="comp-how">Stores your Docker images. CodeBuild pushes a new image tagged with the Git commit SHA. ECS task definitions reference the ECR image URI. Private registry — only your VPC and CodeBuild IAM role can pull.</div>
+    </div>
+
+    <div class="comp">
+      <div class="comp-header"><span class="comp-icon">🔨</span><span class="comp-name">CodeBuild + CodePipeline</span><span class="comp-tier tci">CI/CD</span><span class="tag new">NEW</span></div>
+      <div class="comp-role">Build and deploy automation</div>
+      <div class="comp-how">CodePipeline: GitHub push → Source stage → Build stage (CodeBuild) → Deploy stage (ECS rolling update). CodeBuild: runs <code>npm run build</code>, builds Docker image, pushes to ECR, writes <code>imagedefinitions.json</code>. ECS rolling update replaces tasks one by one — zero downtime deployment.</div>
+    </div>
+
+    <div class="comp">
+      <div class="comp-header"><span class="comp-icon">👁️</span><span class="comp-name">CloudWatch</span><span class="comp-tier tsp">Support</span></div>
+      <div class="comp-role">Observability (logs + metrics + alarms)</div>
+      <div class="comp-how">ECS tasks stream logs to CloudWatch Logs. Alarms on: CPU &gt; 80% (trigger ECS scale-out), DynamoDB throttling, ElastiCache evictions, ALB 5xx rate. Dashboards for request count, latency, error rate.</div>
+    </div>
+
+    <div class="comp">
+      <div class="comp-header"><span class="comp-icon">🔑</span><span class="comp-name">Secrets Manager</span><span class="comp-tier tsp">Support</span></div>
+      <div class="comp-role">Secure env var storage</div>
+      <div class="comp-how">Stores <code>CLOUDINARY_KEY</code>, <code>SES_SMTP</code>, <code>REDIS_PASSWORD</code>, and other secrets. ECS task definition references Secrets Manager ARNs — injected as env vars at container start. Automatic rotation for supported secrets.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BIG PICTURE FLOW -->
+<div class="section" id="bigpicture">
+  <div class="section-title green">🔗 Big Picture: How It All Connects (Request Lifecycle)</div>
+  <div style="margin-top: 10px;">
+    <div style="font-size:12px;color:#8b949e;margin-bottom:8px;">Frontend load:</div>
+    <div class="flow-chain">
+      <div class="flow-step">User browser</div><div class="flow-arrow">→</div>
+      <div class="flow-step">Route 53</div><div class="flow-arrow">→</div>
+      <div class="flow-step">CloudFront + WAF</div><div class="flow-arrow">→</div>
+      <div class="flow-step">S3 (React bundle)</div><div class="flow-arrow">→</div>
+      <div class="flow-step">Browser renders app</div>
+    </div>
+    <div style="font-size:12px;color:#8b949e;margin: 12px 0 8px;">API call (authenticated):</div>
+    <div class="flow-chain">
+      <div class="flow-step">React app</div><div class="flow-arrow">→</div>
+      <div class="flow-step">Cognito SDK (login)</div><div class="flow-arrow">→</div>
+      <div class="flow-step">JWT in cookie</div><div class="flow-arrow">→</div>
+      <div class="flow-step">ALB (validates JWT)</div><div class="flow-arrow">→</div>
+      <div class="flow-step">ECS Fargate task</div><div class="flow-arrow">→</div>
+      <div class="flow-step">ElastiCache (cache?)</div><div class="flow-arrow">→</div>
+      <div class="flow-step">DynamoDB</div><div class="flow-arrow">→</div>
+      <div class="flow-step">Response</div>
+    </div>
+    <div style="font-size:12px;color:#8b949e;margin: 12px 0 8px;">WebSocket (real-time):</div>
+    <div class="flow-chain">
+      <div class="flow-step">React (socket.io-client)</div><div class="flow-arrow">→</div>
+      <div class="flow-step">ALB (sticky session)</div><div class="flow-arrow">→</div>
+      <div class="flow-step">Fargate task A</div><div class="flow-arrow">→</div>
+      <div class="flow-step">Redis pub/sub</div><div class="flow-arrow">→</div>
+      <div class="flow-step">Fargate task B</div><div class="flow-arrow">→</div>
+      <div class="flow-step">Other clients</div>
+    </div>
+    <div style="font-size:12px;color:#8b949e;margin: 12px 0 8px;">Deploy:</div>
+    <div class="flow-chain">
+      <div class="flow-step">git push → GitHub</div><div class="flow-arrow">→</div>
+      <div class="flow-step">CodePipeline trigger</div><div class="flow-arrow">→</div>
+      <div class="flow-step">CodeBuild (Docker build)</div><div class="flow-arrow">→</div>
+      <div class="flow-step">ECR (image push)</div><div class="flow-arrow">→</div>
+      <div class="flow-step">ECS rolling deploy</div><div class="flow-arrow">→</div>
+      <div class="flow-step">Zero downtime ✅</div>
+    </div>
+  </div>
+</div>
+
+<!-- TIER 1 DEFENSE -->
+<div class="section" id="tier1">
+  <div class="section-title green">🟢 Tier 1 — Defense Questions</div>
+  <div class="cards">
+    <div class="card win">
+      <div class="q">Why S3 + CloudFront instead of hosting the frontend on EC2/ECS?</div>
+      <div class="a">React compiles to static files — there is no reason to run a server for it. S3 + CloudFront is the AWS best practice for static SPAs: zero server management, sub-millisecond edge delivery, 99.99% availability SLA, and near-zero cost at our scale. Running EC2 for static files wastes compute budget and adds unnecessary failure points.</div>
+    </div>
+    <div class="card win">
+      <div class="q">Why Cognito instead of keeping your custom JWT system?</div>
+      <div class="a">Custom auth means we own every security vulnerability: token rotation bugs, brute-force attack surface, PKCE implementation, MFA complexity. Cognito is SOC2/ISO-certified, handles all of that, and integrates natively with ALB — the ALB verifies Cognito JWTs automatically using JWKS, removing auth logic entirely from our app. It also gives us MFA, social login, and Cognito-triggered SES emails for free.</div>
+      <div class="caveat-label">Caveat</div>
+      <div class="caveat-text">Migration requires refactoring auth routes and frontend auth flows. Cognito has limited customization (hosted UI is basic). Vendor lock-in to AWS.</div>
+      <div class="defend-label">Defense</div>
+      <div class="caveat-text">The frontend uses its own UI (not Cognito hosted UI) — only the token exchange changes. Lock-in is acceptable because our entire stack targets AWS. Migration effort is bounded and one-time.</div>
+    </div>
+    <div class="card win">
+      <div class="q">Why WAF on both CloudFront AND ALB?</div>
+      <div class="a">Defense-in-depth. CloudFront WAF stops attacks at the edge before they consume VPC resources or reach the ALB. ALB WAF is a backstop for requests that enter VPC through other paths. This is the AWS Well-Architected Framework security best practice for public-facing web apps.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TIER 2 DEFENSE -->
+<div class="section" id="tier2">
+  <div class="section-title blue">🔵 Tier 2 — Defense Questions</div>
+  <div class="cards">
+    <div class="card win">
+      <div class="q">Why ECS Fargate and not AWS Lambda?</div>
+      <div class="a">Our app uses Socket.io for real-time board invitations — this requires persistent, long-lived TCP connections. Lambda functions are stateless and terminate after execution; they cannot maintain WebSocket connections without a separate API Gateway WebSocket API, which would require significant refactoring. Fargate runs our existing Express app in a container with zero code changes to the WebSocket layer.</div>
+      <div class="caveat-label">Caveat</div>
+      <div class="caveat-text">Fargate has a higher baseline cost (~$30+/mo minimum per task) versus Lambda's pay-per-invocation model at low traffic.</div>
+      <div class="defend-label">Defense</div>
+      <div class="caveat-text">For a real-time collaborative app, Fargate's always-on model is correct — users expect instant responses. Lambda cold starts (100ms–3s) would degrade the experience. The cost is justified by the latency requirements.</div>
+    </div>
+    <div class="card win">
+      <div class="q">Why ALB and not API Gateway in front of ECS?</div>
+      <div class="a">ALB natively supports WebSocket upgrades and sticky sessions — API Gateway HTTP API can forward to ALB but WebSockets require a separate API Gateway WebSocket API, adding complexity and cost. ALB also has a Cognito OIDC authenticator built in, so JWT validation happens before the request ever hits ECS. Lower latency (one fewer hop) and lower cost per request at scale.</div>
+    </div>
+    <div class="card win">
+      <div class="q">How does Socket.io work with multiple Fargate tasks?</div>
+      <div class="a">Without coordination, two Fargate tasks each have their own in-memory Socket.io rooms — a client connected to Task A won't receive events emitted by Task B. We solve this with the <code>socket.io-redis-adapter</code> package: all Socket.io events are published/subscribed through ElastiCache Redis, so any task can broadcast to any connected client regardless of which task they're connected to. ALB sticky sessions ensure a client's WebSocket upgrade stays on one task for the connection lifetime.</div>
+      <div class="caveat-label">Caveat</div>
+      <div class="caveat-text">Requires adding <code>@socket.io/redis-adapter</code> to the backend — a small but required code change.</div>
+    </div>
+    <div class="card win">
+      <div class="q">Why Multi-AZ? Isn't it just double the cost?</div>
+      <div class="a">Multi-AZ provides automatic failover if an entire AWS Availability Zone goes down — a real event that has happened historically. With a single AZ, an AZ outage takes our entire app offline. With two AZs, the ALB continues routing to the healthy AZ within seconds. For a production SaaS serving paying customers, this is the minimum viable HA configuration. The cost increase is primarily two NAT Gateways (~$64/mo combined) — a small price for 99.99% uptime SLA.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TIER 3 DEFENSE -->
+<div class="section" id="tier3">
+  <div class="section-title purple">🟣 Tier 3 — Defense Questions</div>
+  <div class="cards">
+    <div class="card win">
+      <div class="q">Why DynamoDB instead of keeping MongoDB Atlas?</div>
+      <div class="a">DynamoDB is fully AWS-native: no cluster to manage, automatic Multi-AZ replication, point-in-time recovery, and on-demand scaling with zero provisioning. MongoDB Atlas is a third-party service that requires separate billing, VPC peering setup, and its own availability SLA chain. DynamoDB integrates natively with IAM, VPC Endpoints (no internet traffic), and CloudWatch. For an AWS-hosted app, DynamoDB removes an external dependency.</div>
+      <div class="caveat-label">Caveat — This is the hardest migration</div>
+      <div class="caveat-text">DynamoDB has no joins. Our app uses MongoDB <code>$lookup</code> aggregations heavily (e.g., fetching board + columns + cards in one query). DynamoDB requires redesigning access patterns using GSIs (Global Secondary Indexes) or application-side joins. ObjectIds must be mapped to string keys. This migration is non-trivial.</div>
+      <div class="defend-label">Defense</div>
+      <div class="caveat-text">We use a multi-table design (one table per collection) which mirrors our existing MongoDB structure and is the most maintainable approach. GSIs cover our main query patterns (boardId, workspaceId, userId lookups). AWS DMS (Database Migration Service) can handle the initial data migration from Atlas to DynamoDB.</div>
+    </div>
+    <div class="card win">
+      <div class="q">What does ElastiCache do beyond what Redis already does?</div>
+      <div class="a">Our existing Redis is self-managed (wherever it runs now). ElastiCache is a managed Redis cluster: automated failover to the replica in AZ2 (within ~30s), automated backups, patch management, and CloudWatch metrics out of the box. The application code change is minimal — just updating the Redis connection endpoint. The key addition is the Socket.io Redis Adapter use case described above.</div>
+    </div>
+    <div class="card win">
+      <div class="q">Why a DynamoDB VPC Endpoint?</div>
+      <div class="a">Without a VPC Endpoint, DynamoDB traffic from Fargate tasks would route through the NAT Gateway — adding latency and NAT data transfer costs. A Gateway VPC Endpoint for DynamoDB routes traffic directly within AWS's private network, bypassing the NAT Gateway entirely. It's free to create and reduces both cost and latency.</div>
+    </div>
+  </div>
+</div>
+
+<!-- CI/CD DEFENSE -->
+<div class="section" id="cicd">
+  <div class="section-title orange">🟡 CI/CD — Defense Questions</div>
+  <div class="cards">
+    <div class="card win">
+      <div class="q">Why CodePipeline over GitHub Actions?</div>
+      <div class="a">CodePipeline is AWS-native: it integrates directly with ECR, ECS, and IAM without managing AWS credentials as GitHub secrets. ECS rolling deployment is a first-class CodePipeline action — no scripting needed. For an architecture presentation targeting AWS, using AWS-native CI/CD is consistent and demonstrates full AWS stack proficiency.</div>
+      <div class="caveat-label">Caveat</div>
+      <div class="caveat-text">CodePipeline is less flexible than GitHub Actions for complex workflows (matrix builds, test parallelism). It also costs $1/pipeline/month.</div>
+      <div class="defend-label">Defense</div>
+      <div class="caveat-text">Our pipeline is straightforward: build → push → deploy. CodePipeline handles this elegantly. The cost is negligible.</div>
+    </div>
+    <div class="card win">
+      <div class="q">What is a rolling deployment and why use it?</div>
+      <div class="a">ECS rolling update replaces Fargate tasks one at a time: spin up a new task with the new image → health check passes → terminate one old task → repeat. At no point are all tasks offline simultaneously. This gives zero-downtime deployments. We can configure minimum healthy percent (e.g., 50%) and maximum percent (e.g., 200%) to control the pace.</div>
+    </div>
+  </div>
+</div>
+
+<!-- KNOWN CAVEATS -->
+<div class="section" id="caveats">
+  <div class="section-title red">⚠️ Known Caveats — Own Them Before They Ask</div>
+  <div class="cards">
+    <div class="card caveat">
+      <div class="caveat-label">Caveat 1 — DynamoDB Migration Complexity</div>
+      <div class="caveat-text">MongoDB uses flexible $lookup aggregations. DynamoDB requires pre-planned GSIs for every query pattern. Under-designed GSIs = expensive full-table scans.</div>
+      <div class="defend-label">Our Answer</div>
+      <div class="caveat-text">We will conduct an access pattern analysis before schema design. Each collection's top 5 query patterns will map to a partition key + GSI combination. We use multi-table (not single-table) design for maintainability. AWS DMS handles the initial data migration.</div>
+    </div>
+    <div class="card caveat">
+      <div class="caveat-label">Caveat 2 — Cognito Auth Refactor Effort</div>
+      <div class="caveat-text">The existing auth system (register, verify, reset, refresh token) is tightly coupled throughout the backend. Replacing it with Cognito requires updating auth routes, middleware, and frontend SDK integration.</div>
+      <div class="defend-label">Our Answer</div>
+      <div class="caveat-text">The scope is bounded: <code>auth.middleware.js</code> switches to Cognito JWKS verification, auth routes (/register, /login, /verify) are removed and replaced by Cognito SDK calls on the frontend, and email flows are handled by Cognito + SES triggers. The rest of the 12 API route groups are untouched.</div>
+    </div>
+    <div class="card caveat">
+      <div class="caveat-label">Caveat 3 — Socket.io Redis Adapter Required</div>
+      <div class="caveat-text">Multi-task Fargate requires adding <code>@socket.io/redis-adapter</code>. Without it, real-time events only reach clients on the same task — silent failure under load.</div>
+      <div class="defend-label">Our Answer</div>
+      <div class="caveat-text">This is a known, well-documented pattern. Adding the adapter is 10 lines of code in <code>server.js</code>. ElastiCache is already in the architecture specifically to support this.</div>
+    </div>
+    <div class="card caveat">
+      <div class="caveat-label">Caveat 4 — NAT Gateway Cost</div>
+      <div class="caveat-text">Two NAT Gateways (one per AZ) cost ~$32/mo each plus data transfer fees (~$0.045/GB). For low-traffic MVPs this can be disproportionate.</div>
+      <div class="defend-label">Our Answer</div>
+      <div class="caveat-text">We target Medium scale / production-grade (our stated requirement). NAT is required for Fargate private subnet outbound access. The cost is fixed and predictable. At scale, data transfer costs are a fraction of overall infrastructure spend. Alternatively, VPC Endpoints for commonly used AWS services (S3, DynamoDB, ECR) reduce NAT data transfer costs significantly.</div>
+    </div>
+    <div class="card caveat">
+      <div class="caveat-label">Caveat 5 — No API Gateway = No Built-in Throttling</div>
+      <div class="caveat-text">Choosing ALB over API Gateway means we don't get per-route throttling or usage plans natively.</div>
+      <div class="defend-label">Our Answer</div>
+      <div class="caveat-text">WAF rate-based rules on the ALB provide IP-level rate limiting (e.g., block IP after 1000 req/5min). Application-level throttling (per-user quotas) can be implemented in the Express middleware using the existing Redis connection — a standard pattern. This is sufficient for our scale tier.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- DIAGRAM Q&A — from live session -->
+<div class="section" id="diagram-qa" style="margin-top:28px;">
+  <div class="section-title" style="background:#1a0f2e;border-left:4px solid #58a6ff;">🗺️ Diagram Q&amp;A — Questions From the Presentation Session</div>
+  <div style="font-size:11px;color:#8b949e;margin:8px 0 12px;">These came up during our design session. Know them cold — they will come up again.</div>
+  <div class="cards">
+
+    <div class="card win">
+      <div class="q">Why are there 2 WAFs in the diagram?</div>
+      <div class="a">They are on <strong>two completely separate traffic paths</strong> — not redundant, not the same WAF appearing twice.
+        <br><br>
+        • <strong>WAF #1 on CloudFront</strong> → protects <code>taskio.com</code> (the React frontend served from S3). Stops DDoS and hotlinking at the edge before requests even enter your AWS region.<br>
+        • <strong>WAF #2 on ALB</strong> → protects <code>api.taskio.com</code> (your Node.js API). Enforces OWASP Top 10 rules, rate limits per IP, blocks malformed requests before they hit ECS Fargate.
+        <br><br>
+        They have no connection to each other. The dashed line between them in older versions of the diagram was a mistake and has been removed.
+      </div>
+      <div class="caveat-label">Follow-up: Could you use just one WAF?</div>
+      <div class="caveat-text">Yes — attach WAF only to the ALB. The real attack surface is the API, not static S3 files. Removing the CloudFront WAF saves ~$5-10/mo and reduces complexity. It's a valid cost trade-off for early-stage deployments.</div>
+    </div>
+
+    <div class="card win">
+      <div class="q">The app is a monolith, not microservices — is ECS + Fargate still the right choice?</div>
+      <div class="a"><strong>Yes. ECS Fargate runs containers, not microservices.</strong> Microservices is an application architecture pattern — ECS is just a container orchestrator that doesn't care whether your container holds one service or twenty.
+        <br><br>
+        What actually happens: the entire Express monolith is packaged as one Docker image, ECS runs N identical copies of it behind the ALB. That is horizontal scaling of a monolith — completely standard and production-proven.
+        <br><br>
+        The only things that would break monolith horizontal scaling are: (1) in-memory state not shared across instances → solved by ElastiCache Redis, (2) WebSocket rooms not shared across instances → solved by Socket.io Redis Adapter. Both are already in the architecture.
+      </div>
+      <div class="caveat-label">Follow-up: What about Elastic Beanstalk or App Runner?</div>
+      <div class="caveat-text">App Runner has no WebSocket support — Socket.io breaks. Elastic Beanstalk uses managed EC2 under the hood with more ops overhead than Fargate. Fargate is the cleanest choice for a containerized monolith with real-time requirements.</div>
+    </div>
+
+    <div class="card win">
+      <div class="q">What is ECS and what is ECR? Why are both needed?</div>
+      <div class="a">
+        • <strong>ECR (Elastic Container Registry)</strong> = private warehouse for Docker images. Like Docker Hub but hosted inside AWS, with IAM access control. Stores your built image tagged by Git commit SHA (e.g., <code>taskio-api:abc123</code>).<br>
+        • <strong>ECS (Elastic Container Service)</strong> = the orchestrator that pulls images from ECR and runs them as Fargate tasks. Handles health checks, auto-scaling, rolling deploys, and placement across AZs.
+        <br><br>
+        They're separate because storage and execution are separate concerns. ECR is the "what to run". ECS is "how and where to run it". The deploy pipeline is: CodeBuild builds image → pushes to ECR → ECS task definition references the ECR image URI → Fargate pulls and runs it.
+      </div>
+    </div>
+
+    <div class="card win">
+      <div class="q">What does "VPC EP" mean on DynamoDB?</div>
+      <div class="a"><strong>VPC EP = VPC Gateway Endpoint.</strong> Without it, traffic from ECS Fargate (in a private subnet) to DynamoDB would route: private subnet → NAT Gateway → public internet → DynamoDB. You pay NAT data transfer fees ($0.045/GB) on every database call.
+        <br><br>
+        With the Gateway Endpoint, traffic routes directly over AWS's private backbone network — no internet, no NAT, no data transfer cost. It is free to create, requires zero application code changes, and is faster (one fewer network hop). A pure win on cost, performance, and security.
+      </div>
+    </div>
+
+    <div class="card win">
+      <div class="q">What do the dashed lines mean vs solid lines in the diagram?</div>
+      <div class="a">
+        • <strong>Solid lines</strong> = live request/response traffic — actual user data flowing through the system (e.g., browser → Route53 → ALB → ECS → DynamoDB).<br>
+        • <strong>Dashed lines</strong> = configuration, credentials, or side-channel relationships — not user traffic.<br><br>
+        Specific dashed lines explained:<br>
+        • <strong>ACM → CloudFront / ALB</strong>: ACM provisions the TLS certificate onto those services once at setup time. Not in the request path at runtime.<br>
+        • <strong>Cognito → ALB</strong> ("JWT validation"): ALB calls Cognito's JWKS endpoint in the background to verify token signatures. No user request is forwarded to Cognito.<br>
+        • <strong>Fargate → CloudWatch</strong>: Container logs are streamed as a side-channel. No user request touches CloudWatch.<br>
+        • <strong>Fargate → Secrets Manager</strong>: At container startup only — the task fetches env vars before serving any traffic.<br>
+        • <strong>ECR → Fargate</strong> ("pull image"): Happens only during deployment, not during user requests.<br>
+        • <strong>ElastiCache replication</strong>: Internal Redis sync between primary (AZ1) and replica (AZ2) — invisible to users.
+      </div>
+    </div>
+
+    <div class="card win">
+      <div class="q">Why don't we use EC2 directly?</div>
+      <div class="a"><strong>ECS Fargate IS running on EC2 under the hood</strong> — AWS manages the underlying instances invisibly. The difference is who owns the operational burden:
+        <br><br>
+        • <strong>Raw EC2</strong>: you provision instances, choose AMIs, patch OS, manage SSH keys, set up auto-scaling launch templates.<br>
+        • <strong>ECS on EC2</strong>: you still manage the EC2 fleet, just add container orchestration on top.<br>
+        • <strong>ECS Fargate (our choice)</strong>: you define task CPU/memory, AWS handles everything else. No AMIs, no SSH, no patching, no capacity management.<br><br>
+        For a containerized Node.js app, Fargate eliminates an entire class of operational work with zero trade-off in capability.
+      </div>
+    </div>
+
+    <div class="card win">
+      <div class="q">Should we use Amazon MemoryDB instead of ElastiCache for Redis?</div>
+      <div class="a"><strong>ElastiCache is the correct choice for our use case.</strong> The distinction is:
+        <br><br>
+        • <strong>ElastiCache</strong> = in-memory cache. Data loss on failure is acceptable because data lives in DynamoDB (the source of truth). Used for: TTL-based API response caching, Socket.io pub/sub adapter.<br>
+        • <strong>MemoryDB</strong> = durable Redis-compatible database with Multi-AZ transaction log. Pay ~2x more for durability guarantees.<br><br>
+        In our architecture, DynamoDB is the primary store. Redis is purely complementary — a cache and a pub/sub bus. Cache misses just fall through to DynamoDB. MemoryDB is the right choice only when Redis itself is the durable source of truth (e.g., replacing DynamoDB entirely with Redis). Using it here would mean paying database-grade durability costs on a cache, which a solution architect panel would question.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

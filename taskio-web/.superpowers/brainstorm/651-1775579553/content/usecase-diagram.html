@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Taskio Use Case Diagram</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', sans-serif; padding: 24px; }
+  h2 { color: #f0f6fc; font-size: 18px; margin-bottom: 4px; }
+  .subtitle { color: #8b949e; margin-bottom: 20px; font-size: 13px; }
+  .mermaid { background: #161b22; border-radius: 10px; padding: 20px; border: 1px solid #30363d; overflow-x: auto; }
+</style>
+</head>
+<body>
+<h2>Use Case Diagram</h2>
+<p class="subtitle">Taskio actors and system use cases</p>
+
+<div class="mermaid">
+flowchart LR
+    subgraph Actors
+        U(("👤 User"))
+        A(("🔧 Admin"))
+        S(("⚙️ System"))
+    end
+
+    subgraph AUTH ["🔐 Authentication"]
+        UC1["Register Account"]
+        UC2["Login / Logout"]
+        UC3["Verify Email"]
+        UC4["Reset Password"]
+        UC5["Refresh Token"]
+    end
+
+    subgraph WS ["🏢 Workspace Management"]
+        UC6["Create Workspace"]
+        UC7["Update Workspace"]
+        UC8["Invite Members"]
+        UC9["Manage Roles & Permissions"]
+        UC10["Subscribe to Plan"]
+        UC11["View Activity Log"]
+    end
+
+    subgraph BOARD ["📋 Board Management"]
+        UC12["Create Board"]
+        UC13["Update Board (cover, visibility)"]
+        UC14["Invite Member to Board"]
+        UC15["Manage Board Roles"]
+        UC16["Reorder Columns (DnD)"]
+    end
+
+    subgraph CARD ["🃏 Card Management"]
+        UC17["Create / Update Card"]
+        UC18["Move Card (DnD)"]
+        UC19["Assign Member to Card"]
+        UC20["Set Due Date"]
+        UC21["Add Label"]
+        UC22["Upload Attachment"]
+        UC23["Add Comment"]
+        UC24["Create Subtask"]
+        UC25["Archive Card"]
+    end
+
+    subgraph NOTIF ["🔔 Real-time & Notifications"]
+        UC26["Receive Board Invitation (Socket.io)"]
+        UC27["See Live Board Updates"]
+        UC28["Receive Email Notification"]
+    end
+
+    subgraph ADMIN ["🛡️ Admin Panel"]
+        UC29["Manage Users (block/unblock)"]
+        UC30["Manage Background Assets"]
+        UC31["View System Stats"]
+    end
+
+    subgraph PAY ["💳 Billing"]
+        UC32["View Plans"]
+        UC33["Make Payment"]
+        UC34["Cancel Subscription"]
+    end
+
+    U --> UC1
+    U --> UC2
+    U --> UC3
+    U --> UC4
+    U --> UC5
+    U --> UC6
+    U --> UC7
+    U --> UC8
+    U --> UC9
+    U --> UC10
+    U --> UC11
+    U --> UC12
+    U --> UC13
+    U --> UC14
+    U --> UC15
+    U --> UC16
+    U --> UC17
+    U --> UC18
+    U --> UC19
+    U --> UC20
+    U --> UC21
+    U --> UC22
+    U --> UC23
+    U --> UC24
+    U --> UC25
+    U --> UC26
+    U --> UC27
+    U --> UC32
+    U --> UC33
+    U --> UC34
+
+    A --> UC29
+    A --> UC30
+    A --> UC31
+
+    S --> UC28
+    S --> UC27
+    S --> UC5
+
+    style AUTH fill:#0d2038,stroke:#1f6feb
+    style WS fill:#0d2038,stroke:#1f6feb
+    style BOARD fill:#0d2038,stroke:#1f6feb
+    style CARD fill:#0d2038,stroke:#1f6feb
+    style NOTIF fill:#0d1f0d,stroke:#238636
+    style ADMIN fill:#2d0d0d,stroke:#f85149
+    style PAY fill:#1a1a0a,stroke:#e3b341
+    style Actors fill:#161b22,stroke:#30363d
+</div>
+</body>
+</html>

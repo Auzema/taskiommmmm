@@ -1,0 +1,66 @@
+<h2>Tier 2: Which compute approach for the backend API?</h2>
+<p class="subtitle">Your backend is Node.js + Express with Socket.io (WebSockets). This affects cost, ops complexity, and scalability.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>ECS + AWS Fargate <span style="font-size:0.75em;color:#4caf50;font-weight:600;">RECOMMENDED</span></h3>
+      <p>Containerized Node.js app running on serverless containers. Matches the reference architecture exactly.</p>
+      <div class="pros-cons" style="margin-top:10px;">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Persistent WebSocket connections (Socket.io works natively)</li>
+          <li>No cold starts</li>
+          <li>Container image in ECR — reproducible builds</li>
+          <li>Auto-scaling based on CPU/memory</li>
+          <li>ALB handles sticky sessions for WebSockets</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Higher baseline cost than Lambda (~$30+/mo minimum)</li>
+          <li>Slightly more ops: Dockerfile, ECR push, task definitions</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>AWS Lambda + API Gateway</h3>
+      <p>Serverless functions — each API route becomes a Lambda. Pay-per-request model.</p>
+      <div class="pros-cons" style="margin-top:10px;">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Nearly zero cost at low traffic</li>
+          <li>No server management at all</li>
+          <li>Built-in scaling to thousands of requests</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>WebSockets require separate API Gateway WebSocket + Lambda (complex)</li>
+          <li>Cold starts (latency spikes)</li>
+          <li>15-min execution limit — not great for long-lived connections</li>
+          <li>Requires significant refactor of Express app</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>EC2 Auto Scaling Group</h3>
+      <p>Traditional VMs with an Auto Scaling Group behind the ALB.</p>
+      <div class="pros-cons" style="margin-top:10px;">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Familiar deployment model (SSH, PM2)</li>
+          <li>Full control over OS and runtime</li>
+          <li>Good for predictable, steady-state traffic</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>You manage OS patching, security updates</li>
+          <li>Slower scaling (minutes vs seconds for Fargate)</li>
+          <li>Less cost-efficient: pay for whole instance 24/7</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</div>
