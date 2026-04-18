@@ -34,7 +34,10 @@ const START_SERVER = () => {
   app.use(express.json())
 
   // Use APIs V1
-  app.use('/v1', APIs_V1)
+  app.use('/api/v1', APIs_V1)
+  app.get('/api/v1/health', (req, res) => {
+    res.status(200).json({ ok: true })
+  })
 
   // Middleware xử lý lỗi tập trung
   app.use(errorHandlingMiddleware)
@@ -56,7 +59,7 @@ const START_SERVER = () => {
     })
   } else {
     // Môi trường Local Dev
-    server.listen(env.LOCAL_DEV_APP_PORT, env.LOCAL_DEV_APP_HOST, () => {
+    server.listen(3000, '0.0.0.0', () => {
       console.log(
         `3. Local DEV: Hi ${env.AUTHOR}, Back-end Server is running successfully at Host: ${env.LOCAL_DEV_APP_HOST} and Port: ${env.LOCAL_DEV_APP_PORT}`
       )
